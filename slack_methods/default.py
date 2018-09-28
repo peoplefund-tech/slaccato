@@ -1,4 +1,4 @@
-from slackbot.bot_core import SlackMethod
+from core import SlackMethod
 
 
 class DefaultResponse(SlackMethod):
