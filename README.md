@@ -1,17 +1,17 @@
-# Staccato
+# Slaccato
 
 > Struectured Slack bot framework
 
 ## Installation
 
 ```shell
-$ pip install staccato
+$ pip install slaccato
 ```
 
 ## Example
 
 ```python
-from staccato.core import SlackBot, SlackMethod
+from slaccato.core import SlackBot, SlackMethod
 
 # Write a new method
 class TestMethod(SlackMethod):
@@ -25,7 +25,7 @@ class TestMethod(SlackMethod):
 
     def response(self, channel, user_command, request_user):
         response = 'Oh, {}! here I am!!!'.format(request_user)
-        return channel, respons
+        return channel, response
     
 slack_bot = SlackBot(slack_bot_token='SLACK_BOT_TOKEN',
                      slack_bot_name='SLACK_BOT_NAME')
