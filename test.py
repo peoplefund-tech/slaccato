@@ -1,5 +1,5 @@
 from slack_methods.test import TestResponse
-from core import SlackBot
+from slaccato.core import SlackBot
 
 
 slack_bot = SlackBot(

@@ -1,4 +1,4 @@
-from core import SlackMethod
+from slaccato.core import SlackMethod
 
 
 class DefaultResponse(SlackMethod):
