@@ -33,3 +33,5 @@ slack_bot = SlackBot(slack_bot_token='SLACK_BOT_TOKEN',
 slack_bot.add_method(TestMethod)
 slack_bot.run()
 ```
+
+![Test screenshot](./screenshots/screenshot-1.png)
