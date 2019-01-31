@@ -284,9 +284,8 @@ class SlackBot(object):
                 self.futures = list()
             try:
                 channel, command, user = self._parse_slack_output(self._slack_client.rtm_read())
-                if channel and command:
-                    request_user = user
-                    self._handle_command(channel, command, request_user)
+                if channel and command and user:
+                    self._handle_command(channel, command, user)
             except KeyboardInterrupt:
                 e = sys.exc_info()[1]
                 raise e
@@ -312,7 +311,7 @@ class SlackBot(object):
         Returns:
             channel (str): Channel with requested user.
             text (str): Received message from user.
-            user (str): Username and display name.
+            user (str): Mention of user who triggered command.
         """
         output_list = slack_rtm_output
 
@@ -338,7 +337,7 @@ class SlackBot(object):
                     return (
                         output['channel'],
                         output['text'].split(self.AT_BOT)[1].strip().lower(),
-                        '{} (@{})'.format(user.real_name, user.name),
+                        '<@{}>'.format(user.name),
                     )
 
                 # elif 'message' == output['type']:
@@ -361,6 +360,7 @@ class SlackBot(object):
         Args:
             command:
             channel:
+            request_user:
 
         Returns:
 
