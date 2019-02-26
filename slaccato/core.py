@@ -256,7 +256,7 @@ class SlackBot(object):
             self.logger.debug('Added logging handler: ' + str(h))
 
     def exit_gracefully(self, signum, frame):
-        if signal.SIGTERM == signum:
+        if signum in (signal.SIGINT, signal.SIGTERM):
             self.logger.info('Received termination signal. Prepare to exit...')
             if 1 <= len(self.futures):
                 for f in as_completed(self.futures):

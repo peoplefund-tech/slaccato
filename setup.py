@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 
 setup(name='slaccato',
-      version='0.1.4',
+      version='0.1.5',
       description='Structured Slack bot framework.',
       long_description=open('README.md').read(),
       license='MIT',
