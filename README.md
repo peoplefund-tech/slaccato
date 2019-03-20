@@ -1,6 +1,6 @@
 # Slaccato
 
-> Struectured Slack bot framework
+> Structured Slack bot framework
 
 ## Installation
 
