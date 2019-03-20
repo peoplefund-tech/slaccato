@@ -326,10 +326,6 @@ class SlackBot(object):
                 if output['type'] != 'message':
                     return None, None, None
 
-                # Prevent to recursive call.
-                if 'user' in output and self.BOT_ID == output['user']:
-                    return None, None, None
-
                 if 'text' in output and self.AT_BOT in output['text']:
                     # return text after the @ mention, whitespace removed
                     # self.logger.debug('SlackRUMOutput:{}'.format(output))
