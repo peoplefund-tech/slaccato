@@ -1,9 +1,7 @@
 import importlib
-import inspect
 import logging
 import signal
 import sys
-import time
 import traceback
 from concurrent.futures import (
     ThreadPoolExecutor,
@@ -11,11 +9,6 @@ from concurrent.futures import (
 )
 from datetime import datetime
 from logging.handlers import WatchedFileHandler
-from os import listdir
-from os.path import (
-    isfile,
-    join,
-)
 
 from slackclient import SlackClient
 
@@ -58,7 +51,7 @@ class SlackMethod:
             
         Returns:
             (str): Target channel
-            (str): Message to send
+            (str|list): Message to send
 
         """
         raise NotImplementedError()
@@ -389,7 +382,14 @@ class SlackBot(object):
             channel, response = self.slack_methods['WrongInput']['response'](channel, user_command,
                                                                              exception=error_message)
 
-        callback("chat.postMessage", channel=channel, text=response, as_user=True)
+        post_message_args = {'channel': channel, 'as_user': True}
+
+        if isinstance(response, list):
+            post_message_args['blocks'] = response
+        else:
+            post_message_args['text'] = str(response)
+
+        callback("chat.postMessage", **post_message_args)
         return True
 
     def _get_command_function(self, command):
