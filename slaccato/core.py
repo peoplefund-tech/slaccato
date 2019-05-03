@@ -155,7 +155,7 @@ class SlackBot(object):
         if not self.BOT_ID:
             raise Exception("Could not find bot user with the name {}.".format(self.slack_bot_name))
         self.AT_BOT = self.AT_BOT.format(self.BOT_ID)
-        self.slack_methods = self._load_default_methods(DefaultMethod)
+        self.slack_methods = self._load_default_methods(default_method)
 
     def get_bot_id(self):
         api_call = self._slack_client.api_call("users.list")
