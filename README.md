@@ -1,6 +1,6 @@
 # Slaccato
 
-> Struectured Slack bot framework
+> Structured Slack bot framework
 
 ## Installation
 
@@ -10,11 +10,13 @@ $ pip install slaccato
 
 ## Example
 
+### General Usage
+
 ```python
-from slaccato.core import SlackBot, SlackMethod
+import slaccato
 
 # Write a new method
-class TestMethod(SlackMethod):
+class TestMethod(slaccato.SlackMethod):
     @property
     def execution_words(self):
         return ['테스트', 'test', 'ping']
@@ -27,9 +29,68 @@ class TestMethod(SlackMethod):
         response = 'Oh, {}! here I am!!!'.format(request_user)
         return channel, response
     
-slack_bot = SlackBot(slack_bot_token='SLACK_BOT_TOKEN',
-                     slack_bot_name='SLACK_BOT_NAME')
+slack_bot = slaccato.SlackBot(
+    slack_bot_token='SLACK_BOT_TOKEN',
+    slack_bot_name='SLACK_BOT_NAME',
+    std_out_path='/path/to/MY_LOG_FILE.log',
+    std_err_path='/path/to/MY_ERR_FILE.log')
 
 slack_bot.add_method(TestMethod)
 slack_bot.run()
 ```
+
+![Test screenshot](./screenshots/screenshot-1.png)
+
+### Message Customization
+
+Please see [Slack API documentations](https://slack.dev/python-slackclient/basic_usage.html#customizing-a-message-s-layout)
+
+```python
+import slaccato
+
+# Write a new method
+class TestMethod(slaccato.SlackMethod):
+    @property
+    def execution_words(self):
+        return ['테스트', 'test', 'ping']
+
+    @property
+    def help_text(self):
+        return '*{}*: You can test me!'.format('/'.join(self.execution_words))
+
+    def response(self, channel, user_command, request_user):
+        response = [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "Danny Torrence left the following review for your property:"
+                }
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "<https://example.com|Overlook Hotel> \n :star: \n Doors had too many axe holes, guest in room " +
+                    "237 was far too rowdy, whole place felt stuck in the 1920s."
+                },
+                "accessory": {
+                    "type": "image",
+                    "image_url": "https://images.pexels.com/photos/750319/pexels-photo-750319.jpeg",
+                    "alt_text": "Haunted hotel image"
+                }
+            },
+            {
+                "type": "section",
+                "fields": [
+                    {
+                        "type": "mrkdwn",
+                        "text": "*Average Rating*\n1.0"
+                    }
+                ]
+            }
+        ]
+        return channel, response
+```
+
+![Test screenshot](./screenshots/screenshot-2.png)

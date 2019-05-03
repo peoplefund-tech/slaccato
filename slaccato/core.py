@@ -1,9 +1,7 @@
 import importlib
-import inspect
 import logging
 import signal
 import sys
-import time
 import traceback
 from concurrent.futures import (
     ThreadPoolExecutor,
@@ -11,11 +9,6 @@ from concurrent.futures import (
 )
 from datetime import datetime
 from logging.handlers import WatchedFileHandler
-from os import listdir
-from os.path import (
-    isfile,
-    join,
-)
 
 from slackclient import SlackClient
 
@@ -58,7 +51,7 @@ class SlackMethod:
             
         Returns:
             (str): Target channel
-            (str): Message to send
+            (str|list): Message to send
 
         """
         raise NotImplementedError()
@@ -256,7 +249,7 @@ class SlackBot(object):
             self.logger.debug('Added logging handler: ' + str(h))
 
     def exit_gracefully(self, signum, frame):
-        if signal.SIGTERM == signum:
+        if signum in (signal.SIGINT, signal.SIGTERM):
             self.logger.info('Received termination signal. Prepare to exit...')
             if 1 <= len(self.futures):
                 for f in as_completed(self.futures):
@@ -284,9 +277,8 @@ class SlackBot(object):
                 self.futures = list()
             try:
                 channel, command, user = self._parse_slack_output(self._slack_client.rtm_read())
-                if channel and command:
-                    request_user = user
-                    self._handle_command(channel, command, request_user)
+                if channel and command and user:
+                    self._handle_command(channel, command, user)
             except KeyboardInterrupt:
                 e = sys.exc_info()[1]
                 raise e
@@ -312,7 +304,7 @@ class SlackBot(object):
         Returns:
             channel (str): Channel with requested user.
             text (str): Received message from user.
-            user (str): Username and display name.
+            user (str): Mention of user who triggered command.
         """
         output_list = slack_rtm_output
 
@@ -327,10 +319,6 @@ class SlackBot(object):
                 if output['type'] != 'message':
                     return None, None, None
 
-                # Prevent to recursive call.
-                if 'user' in output and self.BOT_ID == output['user']:
-                    return None, None, None
-
                 if 'text' in output and self.AT_BOT in output['text']:
                     # return text after the @ mention, whitespace removed
                     # self.logger.debug('SlackRUMOutput:{}'.format(output))
@@ -338,7 +326,7 @@ class SlackBot(object):
                     return (
                         output['channel'],
                         output['text'].split(self.AT_BOT)[1].strip().lower(),
-                        '{} (@{})'.format(user.real_name, user.name),
+                        '<@{}>'.format(user.name),
                     )
 
                 # elif 'message' == output['type']:
@@ -361,6 +349,7 @@ class SlackBot(object):
         Args:
             command:
             channel:
+            request_user:
 
         Returns:
 
@@ -393,7 +382,14 @@ class SlackBot(object):
             channel, response = self.slack_methods['WrongInput']['response'](channel, user_command,
                                                                              exception=error_message)
 
-        callback("chat.postMessage", channel=channel, text=response, as_user=True)
+        post_message_args = {'channel': channel, 'as_user': True}
+
+        if isinstance(response, list):
+            post_message_args['blocks'] = response
+        else:
+            post_message_args['text'] = str(response)
+
+        callback("chat.postMessage", **post_message_args)
         return True
 
     def _get_command_function(self, command):
