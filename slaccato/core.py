@@ -3,6 +3,7 @@ import logging
 import signal
 import sys
 import traceback
+import time
 from concurrent.futures import (
     ThreadPoolExecutor,
     as_completed,
@@ -133,6 +134,7 @@ class SlackBot(object):
                  std_err_path='slack_bot_error.log',
                  pid_file_path='slack_bot.pid',
                  pid_file_timeout=5,
+                 polling_interval_milliseconds=None,
                  exception_callback=None,
                  default_method=DefaultMethod):
 
@@ -145,6 +147,8 @@ class SlackBot(object):
         self.stderr_path = std_err_path
         self.pidfile_path = pid_file_path
         self.pidfile_timeout = pid_file_timeout
+
+        self.polling_interval_milliseconds = polling_interval_milliseconds
 
         self.slack_bot_token = slack_bot_token
         self.slack_bot_name = slack_bot_name
@@ -291,7 +295,9 @@ class SlackBot(object):
                 if self.exception_callback:
                     self.exception_callback(e)
                 self.exit_gracefully(signal.SIGTERM, None)
-            # time.sleep(settings.SLACK_READ_WEB_SOCKET_DELAY)
+
+            if self.polling_interval_milliseconds is not None:
+                time.sleep(self.polling_interval_milliseconds / 1000)
 
     def _parse_slack_output(self, slack_rtm_output):
         """
