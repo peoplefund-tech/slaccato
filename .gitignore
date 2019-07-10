@@ -1,7 +1,10 @@
-venv/
 .vscode/
-__pycache__/
+.idea/
+
 *.log
 *.egg-info
+
+venv/
+__pycache__/
 build/
 dist/
