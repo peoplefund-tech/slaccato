@@ -331,7 +331,7 @@ class SlackBot(object):
                     user = self._slack_client.server.users[output['user']]
                     return (
                         output['channel'],
-                        output['text'].split(self.AT_BOT)[1].strip().lower(),
+                        output['text'].split(self.AT_BOT)[1].strip(),
                         '<@{}>'.format(user.name),
                     )
 
