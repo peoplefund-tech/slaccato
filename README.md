@@ -25,15 +25,16 @@ class TestMethod(slaccato.SlackMethod):
     def help_text(self):
         return '*{}*: You can test me!'.format('/'.join(self.execution_words))
 
-    def response(self, channel, user_command, request_user):
+    def response(self, channel, thread_ts, user_command, request_user):
         response = 'Oh, {}! here I am!!!'.format(request_user)
-        return channel, response
+        return channel, thread_ts, response
     
 slack_bot = slaccato.SlackBot(
     slack_bot_token='SLACK_BOT_TOKEN',
     slack_bot_name='SLACK_BOT_NAME',
-    std_out_path='/path/to/MY_LOG_FILE.log',
-    std_err_path='/path/to/MY_ERR_FILE.log')
+    # Optional. Use default logger
+    logger=None,
+)
 
 slack_bot.add_method(TestMethod)
 slack_bot.run()
@@ -58,7 +59,7 @@ class TestMethod(slaccato.SlackMethod):
     def help_text(self):
         return '*{}*: You can test me!'.format('/'.join(self.execution_words))
 
-    def response(self, channel, user_command, request_user):
+    def response(self, channel, thread_ts, user_command, request_user):
         response = [
             {
                 "type": "section",
@@ -90,7 +91,7 @@ class TestMethod(slaccato.SlackMethod):
                 ]
             }
         ]
-        return channel, response
+        return channel, thread_ts, response
 ```
 
 ![Test screenshot](./screenshots/screenshot-2.png)
