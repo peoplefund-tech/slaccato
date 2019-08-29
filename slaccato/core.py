@@ -73,19 +73,6 @@ def load_function(func):
     return func
 
 
-class SlackBotLogFormatter(logging.Formatter):
-    converter = datetime.fromtimestamp
-
-    def formatTime(self, record, datefmt=None):
-        ct = self.converter(record.created)
-        if datefmt:
-            s = ct.strftime(datefmt)
-        else:
-            t = ct.strftime("%Y-%m-%d %H:%M:%S")
-            s = "%s,%06d" % (t, record.msecs)
-        return s
-
-
 class DefaultMethod(SlackMethod):
 
     @property
@@ -130,23 +117,16 @@ class SlackBot(object):
     def __init__(self,
                  slack_bot_token,
                  slack_bot_name,
-                 std_in_path='/dev/null',
-                 std_out_path='slack_bot_output.log',
-                 std_err_path='slack_bot_error.log',
-                 pid_file_path='slack_bot.pid',
+                 logger=logging.getLogger(__name__),
                  pid_file_timeout=5,
                  polling_interval_milliseconds=None,
                  exception_callback=None,
                  default_method=DefaultMethod):
 
-        self.logger = logging.getLogger(__name__)
+        self.logger = logger
         self.kill_now = False
         self.futures = []
 
-        self.stdin_path = std_in_path
-        self.stdout_path = std_out_path
-        self.stderr_path = std_err_path
-        self.pidfile_path = pid_file_path
         self.pidfile_timeout = pid_file_timeout
 
         self.polling_interval_milliseconds = polling_interval_milliseconds
@@ -239,35 +219,12 @@ class SlackBot(object):
         return channel, thread_ts, self.help_text
 
     def run(self):
-        self.set_logger()
-
         # Set signal handler up.
         signal.signal(signal.SIGINT, self.exit_gracefully)
         signal.signal(signal.SIGTERM, self.exit_gracefully)
 
         self.start()
         self.logger.info('SlackBot is completely exited.')
-
-    def set_logger(self):
-        self.logger.handlers = list()
-
-        # Set up logger file handler in daemon process.
-        formatter = SlackBotLogFormatter(
-            fmt='[SlackBot %(levelname)s %(asctime)s %(module)s %(process)d %(thread)d] %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S.%f'
-        )
-
-        handler = WatchedFileHandler(self.stdout_path, encoding='utf8')
-        handler.setFormatter(formatter)
-
-        self.logger.addHandler(handler)
-        self.logger.setLevel(logging.DEBUG)
-
-        self.logger.info('SlackBot starts!')
-        self.logger.info('Set new logger up.')
-
-        for h in self.logger.handlers:
-            self.logger.debug('Added logging handler: ' + str(h))
 
     def exit_gracefully(self, signum, frame):
         if signum in (signal.SIGINT, signal.SIGTERM):
