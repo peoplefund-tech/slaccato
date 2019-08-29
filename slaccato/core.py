@@ -42,18 +42,19 @@ class SlackMethod:
         """
         raise NotImplementedError()
 
-    def response(self, channel, user_command, request_user):
+    def response(self, channel, thread_ts, user_command, request_user):
         """This method should be able to return a str response
 
         Args:
             channel (str): Channel with requested user
+            thread_ts (str): Thread requested from user
             user_command (str): Text received from user
             request_user (dict): Requested user.
             
         Returns:
             (str): Target channel
+            (str): Target thread or None
             (str|list): Message to send
-
         """
         raise NotImplementedError()
 
@@ -95,7 +96,7 @@ class DefaultMethod(SlackMethod):
     def help_text(self):
         return None
 
-    def response(self, channel, user_command, request_user, exception=None):
+    def response(self, channel, thread_ts, user_command, request_user, exception=None):
         if not exception:
             response = '\n'.join([
                 'Wrong command!',
@@ -107,7 +108,7 @@ class DefaultMethod(SlackMethod):
                 "Oops, Some error occurred."
                 '```{}```'.format(exception),
             ])
-        return channel, response
+        return channel, thread_ts, response
 
 
 class SlackBot(object):
@@ -217,7 +218,7 @@ class SlackBot(object):
                 'response': instance.response,
             }
 
-    def get_help_text(self, channel, user_command, request_user):
+    def get_help_text(self, channel, thread_ts, user_command, request_user):
         if self.help_text:
             return channel, self.help_text
 
@@ -235,7 +236,7 @@ class SlackBot(object):
         help_text_list.insert(0, '*Available commands*:\n')
         self.help_text = ''.join(help_text_list)
 
-        return channel, self.help_text
+        return channel, thread_ts, self.help_text
 
     def run(self):
         self.set_logger()
@@ -400,20 +401,18 @@ class SlackBot(object):
             params = {
                 'callback': self._slack_client.api_call,
                 'channel': channel,
+                'thread_ts': thread_ts,
                 'func': self._get_command_function(command),
                 'user_command': command,
                 'request_user': request_user
             }
-
-            if thread_ts is not None:
-                params['thread_ts'] = thread_ts
 
             future = executor.submit(self._command_executor, **params)
             self.futures.append(future)
 
     def _command_executor(self, callback, channel, func, user_command, request_user, thread_ts=None):
         try:
-            channel, response = func(channel, user_command, request_user=request_user)
+            channel, thread_ts, response = func(channel, thread_ts, user_command, request_user=request_user)
 
         except Exception as e:
             self.logger.error('An error occurred in a {} function. exception:{}'.format(func, e))
@@ -435,10 +434,7 @@ class SlackBot(object):
             channel, response = self.slack_methods['WrongInput']['response'](channel, user_command,
                                                                              exception=error_message)
 
-        post_message_args = {'channel': channel, 'as_user': True}
-
-        if thread_ts is not None:
-            post_message_args['thread_ts'] = thread_ts
+        post_message_args = {'channel': channel, 'thread_ts': thread_ts, 'as_user': True}
 
         if isinstance(response, list):
             post_message_args['blocks'] = response
@@ -447,7 +443,8 @@ class SlackBot(object):
             post_message_args['text'] = str(response)
 
         callback("chat.postMessage", **post_message_args)
-        return True
+
+        return
 
     def _get_command_function(self, command):
         for method_name in self.slack_methods:
