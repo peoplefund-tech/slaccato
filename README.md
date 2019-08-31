@@ -95,3 +95,5 @@ class TestMethod(slaccato.SlackMethod):
 ```
 
 ![Test screenshot](./screenshots/screenshot-2.png)
+
+## [LICENSE](./LICENSE)
