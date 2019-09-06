@@ -8,55 +8,14 @@ from concurrent.futures import (
     ThreadPoolExecutor,
     as_completed,
 )
-from datetime import datetime
-from logging.handlers import WatchedFileHandler
 
 from slackclient import SlackClient
 
+from slaccato import SlackMethod
 
 """
 Slack API list: https://api.slack.com/bot-users#api_usage
 """
-
-
-class SlackMethod:
-    """
-    Base Class of User's command.
-    """
-
-    @property
-    def execution_words(self):
-        """This method should be able to return list(str).
-
-        Returns
-            list(str): The keywords to execute the method `response`.
-        """
-        raise NotImplementedError()
-
-    @property
-    def help_text(self):
-        """This method should able to return the description, guide for this command.
-
-        Returns:
-            (str): Description, guide for this command.
-        """
-        raise NotImplementedError()
-
-    def response(self, channel, thread_ts, user_command, request_user):
-        """This method should be able to return a str response
-
-        Args:
-            channel (str): Channel with requested user
-            thread_ts (str): Thread requested from user
-            user_command (str): Text received from user
-            request_user (dict): Requested user.
-            
-        Returns:
-            (str): Target channel
-            (str): Target thread or None
-            (str|list): Message to send
-        """
-        raise NotImplementedError()
 
 
 def load_function(func):
@@ -137,13 +96,16 @@ class SlackBot(object):
         self.exception_callback = load_function(exception_callback) if exception_callback else None
 
         self.BOT_ID = self.get_bot_id()
+
         if not self.BOT_ID:
             raise Exception("Could not find bot user with the name {}.".format(self.slack_bot_name))
+
         self.AT_BOT = self.AT_BOT.format(self.BOT_ID)
         self.slack_methods = self._load_default_methods(default_method)
 
     def get_bot_id(self):
         api_call = self._slack_client.api_call("users.list")
+
         if api_call.get('ok'):
             # retrieve all users so we can find our bot
             members = api_call.get('members')
@@ -327,16 +289,6 @@ class SlackBot(object):
                         output['text'].split(self.AT_BOT)[1].strip(),
                         '{}'.format(user.name),
                     )
-
-                # elif 'message' == output['type']:
-                    # _response = self._slack_client.api_call('im.list')
-                    # if not _response.get('ok'):
-                    #     return None, None
-                    # self.logger.debug('im.list ok response:{}'.format(_response))
-                    # for im in _response['ims']:
-                    #     if output['channel'] == im['id']:
-                    #         return output['channel'], output['text'].strip().lower()
-                    # self.logger.debug('SlackRUMOutput:{}'.format(output))
 
         return None, None, None, None
 
