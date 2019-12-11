@@ -119,7 +119,7 @@ class SlackBot(object):
                  slack_bot_name,
                  logger=logging.getLogger(__name__),
                  pid_file_timeout=5,
-                 polling_interval_milliseconds=None,
+                 polling_interval_milliseconds=100,
                  exception_callback=None,
                  default_method=DefaultMethod):
 

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 
 setup(name='slaccato',
-      version='0.2.0',
+      version='0.2.1',
       description='Structured Slack bot framework.',
       long_description=open('README.md').read(),
       long_description_content_type="text/markdown",
@@ -20,7 +20,10 @@ setup(name='slaccato',
                         'websocket-client==0.53.0'],
       packages=find_packages(exclude=['slack_methods']),
       python_requires='>=3.4',
-      classifiers=['Programming Language :: Python :: 3.4',
-                   'Programming Language :: Python :: 3.5',
-                   'Programming Language :: Python :: 3.6',
-                   'Programming Language :: Python :: 3.7'])
+      classifiers=[
+            'Programming Language :: Python :: 3.4',
+            'Programming Language :: Python :: 3.5',
+            'Programming Language :: Python :: 3.6',
+            'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8',
+      ])
